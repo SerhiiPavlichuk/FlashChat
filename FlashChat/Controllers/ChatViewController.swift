@@ -21,14 +21,18 @@ class ChatViewController: UIViewController {
         
         title = Constans.appName
         navigationItem.hidesBackButton = true
-
         tableView.register(UINib(nibName: Constans.cellNibName, bundle: nil), forCellReuseIdentifier: Constans.cellIdentifier)
         loadmessages()
 
     }
 
     func loadmessages() {
-        db.collection(Constans.FStore.collectionName).getDocuments { (querySnapshot, error) in
+        db.collection(Constans.FStore.collectionName)
+            .order(by: Constans.FStore.dateField)
+            .addSnapshotListener { (querySnapshot, error) in
+
+            self.messages = []
+
             if let error = error {
                 print("Can`t load messages from base \(error)")
             } else {
@@ -38,7 +42,10 @@ class ChatViewController: UIViewController {
                         if let messageBody = data[Constans.FStore.bodyField] as? String, let messageSender = data[Constans.FStore.senderField] as? String {
                             let newMessage = Message(sender: messageSender, body: messageBody)
                             self.messages.append(newMessage)
-                            self.tableView.reloadData()
+
+                            DispatchQueue.main.async {
+                                self.tableView.reloadData()
+                            }
                         }
                     }
                 }
@@ -48,14 +55,18 @@ class ChatViewController: UIViewController {
 
     @IBAction func sendMessageButtonPressed(_ sender: UIButton) {
         if let messageSender = Auth.auth().currentUser?.email, let messageBody = messageTextField.text {
-            db.collection(Constans.FStore.collectionName).addDocument(data: [Constans.FStore.senderField: messageSender, Constans.FStore.bodyField: messageBody]) { error in
+            db.collection(Constans.FStore.collectionName).addDocument(data: [
+                Constans.FStore.senderField: messageSender,
+                Constans.FStore.bodyField: messageBody,
+                Constans.FStore.dateField: Date().timeIntervalSince1970
+            ]) { error in
                 if let error = error {
                     print("There are error \(error)")
                 } else {
                     print("Succes")
+                    self.messageTextField.text = ""
                 }
             }
-
         }
     }
     
