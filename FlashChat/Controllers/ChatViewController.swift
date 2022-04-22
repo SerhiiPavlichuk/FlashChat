@@ -31,28 +31,28 @@ class ChatViewController: UIViewController {
             .order(by: Constans.FStore.dateField)
             .addSnapshotListener { (querySnapshot, error) in
 
-            self.messages = []
+                self.messages = []
 
-            if let error = error {
-                print("Can`t load messages from base \(error)")
-            } else {
-                if let snapShotDocuments = querySnapshot?.documents {
-                    for doc in snapShotDocuments {
-                        let data = doc.data()
-                        if let messageBody = data[Constans.FStore.bodyField] as? String, let messageSender = data[Constans.FStore.senderField] as? String {
-                            let newMessage = Message(sender: messageSender, body: messageBody)
-                            self.messages.append(newMessage)
+                if let error = error {
+                    print("Can`t load messages from base \(error)")
+                } else {
+                    if let snapShotDocuments = querySnapshot?.documents {
+                        for doc in snapShotDocuments {
+                            let data = doc.data()
+                            if let messageBody = data[Constans.FStore.bodyField] as? String, let messageSender = data[Constans.FStore.senderField] as? String {
+                                let newMessage = Message(sender: messageSender, body: messageBody)
+                                self.messages.append(newMessage)
 
-                            DispatchQueue.main.async {
-                                self.tableView.reloadData()
-                                let indexPath = IndexPath(row: self.messages.count - 1, section: 0)
-                                self.tableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                                DispatchQueue.main.async {
+                                    self.tableView.reloadData()
+                                    let indexPath = IndexPath(row: self.messages.count - 1, section: 0)
+                                    self.tableView.scrollToRow(at: indexPath, at: .top, animated: true)
+                                }
                             }
                         }
                     }
                 }
             }
-        }
     }
 
     @IBAction func sendMessageButtonPressed(_ sender: UIButton) {
